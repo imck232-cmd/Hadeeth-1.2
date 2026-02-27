@@ -196,26 +196,38 @@ export const QAView: React.FC<QAViewProps> = ({ user, questions, onAddQuestion, 
                 ) : (
                     filteredQuestions.map(q => (
                         <div key={q.id} className="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-md hover:border-teal-500/50 transition-colors">
-                            <div className="flex justify-between items-start mb-4">
+                            <div className="flex justify-between items-start gap-4 mb-4">
                                 <div className="flex-grow">
                                     <p className="text-lg font-semibold text-white mb-1">{q.text}</p>
                                     <p className="text-xs text-slate-500">بواسطة: {q.author} • {new Date(q.timestamp).toLocaleString('ar-EG')}</p>
                                 </div>
-                                {user.isAdmin && !q.answer && answeringId !== q.id && (
+                                {user.isAdmin && answeringId !== q.id && (
                                     <button
                                         onClick={() => setAnsweringId(q.id)}
-                                        className="text-teal-400 hover:text-teal-300 text-sm font-bold"
+                                        className="px-4 py-2 bg-teal-600/20 border border-teal-500/50 text-teal-400 hover:bg-teal-600 hover:text-white rounded-lg text-sm font-bold transition-all shrink-0"
                                     >
-                                        إجابة
+                                        الإجابة
                                     </button>
                                 )}
                             </div>
 
                             {q.answer ? (
-                                <div className="mt-4 p-4 bg-slate-900/50 border-r-4 border-teal-500 rounded-l-lg">
-                                    <p className="text-teal-400 font-bold text-sm mb-1">الإجابة (بواسطة {q.answeredBy}):</p>
-                                    <p className="text-slate-200">{q.answer}</p>
-                                    <p className="text-[10px] text-slate-500 mt-2">{new Date(q.answerTimestamp!).toLocaleString('ar-EG')}</p>
+                                <div className="mt-4">
+                                    <button
+                                        onClick={() => {
+                                            const el = document.getElementById(`answer-${q.id}`);
+                                            if (el) el.classList.toggle('hidden');
+                                        }}
+                                        className="flex items-center gap-2 text-teal-400 hover:text-teal-300 font-bold text-sm mb-2"
+                                    >
+                                        <ChevronDownIcon className="w-4 h-4" />
+                                        <span>نص الإجابة</span>
+                                    </button>
+                                    <div id={`answer-${q.id}`} className="hidden p-4 bg-slate-900/50 border-r-4 border-teal-500 rounded-l-lg transition-all">
+                                        <p className="text-teal-400 font-bold text-xs mb-1">الإجابة (بواسطة {q.answeredBy}):</p>
+                                        <p className="text-slate-200">{q.answer}</p>
+                                        <p className="text-[10px] text-slate-500 mt-2">{new Date(q.answerTimestamp!).toLocaleString('ar-EG')}</p>
+                                    </div>
                                 </div>
                             ) : answeringId === q.id ? (
                                 <div className="mt-4 space-y-3">
@@ -380,13 +392,11 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ results }) => {
         return <div className="text-center text-slate-400 mt-8">لا توجد نتائج لعرضها.</div>;
     }
     return (
-        <div className="mt-6">
-            <h2 className="text-3xl font-bold text-center text-teal-400 mb-6 pb-2 border-b-2 border-slate-700">النتيجة الرئيسية</h2>
+        <div className="mt-6 space-y-6">
             <HadithCard hadith={results.mainHadith} />
 
             {results.similarHadiths.length > 0 && (
-                <div className="mt-12">
-                    <h2 className="text-3xl font-bold text-center text-teal-400 mb-6 pb-2 border-b-2 border-slate-700">أحاديث مشابهة</h2>
+                <div className="pt-6 border-t border-slate-700">
                     {results.similarHadiths.map(hadith => (
                         <HadithCard key={hadith.id} hadith={hadith} />
                     ))}
