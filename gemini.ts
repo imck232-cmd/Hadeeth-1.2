@@ -1,21 +1,5 @@
-
-import { GoogleGenAI, Type } from "@google/genai";
 import type { Hadith, CategorizedResult } from './types';
 import { HADITH_DATA } from './data';
-
-// Lazy initialization to avoid crash if API_KEY is missing during module load
-let aiInstance: GoogleGenAI | null = null;
-
-const getAI = () => {
-    if (!aiInstance) {
-        const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
-        if (!apiKey) {
-            console.warn("Gemini API Key is missing. Search functionality will not work.");
-        }
-        aiInstance = new GoogleGenAI({ apiKey: apiKey || 'MISSING_KEY' });
-    }
-    return aiInstance;
-};
 
 export const parseHadithData = (): Hadith[] => {
     console.log("Parsing Hadith data...");
@@ -73,66 +57,45 @@ export const parseHadithData = (): Hadith[] => {
     return hadiths;
 };
 
-const hadithPropertiesSchema = {
-    id: { type: Type.INTEGER },
-    text: { type: Type.STRING },
-    source: { type: Type.STRING },
-    narrator: { type: Type.STRING },
-    before: { type: Type.STRING },
-    response: { type: Type.STRING },
-    other: { type: Type.STRING },
-};
-
 export const searchHadiths = async (query: string, allHadiths: Hadith[]) => {
-    console.log(`Searching for: "${query}"`);
-    const prompt = `
-أنت مساعد خبير في علوم الحديث النبوي. سأزودك باستعلام بحث من المستخدم ومجموعة كاملة من الأحاديث بصيغة JSON.
-مهمتك هي:
-1. العثور على الحديث الأكثر تطابقًا وصلةً باستعلام البحث.
-2. العثور على أحاديث أخرى مشابهة بنسبة 70% على الأقل.
-3. الرد بصيغة JSON فقط وفقاً للمخطط.
+    console.log(`Local search for: "${query}"`);
+    
+    const normalizedQuery = query.trim().toLowerCase();
+    if (!normalizedQuery) return { mainHadith: allHadiths[0], similarHadiths: [] };
 
-استعلام البحث: "${query}"
+    // تقسيم الاستعلام إلى كلمات للبحث عن تطابق متعدد
+    const queryWords = normalizedQuery.split(/\s+/).filter(word => word.length > 2);
 
-مجموعة الأحاديث الكاملة (مختصرة للبحث):
-${JSON.stringify(allHadiths.map(h => ({ id: h.id, text: h.text })))}
-`;
-
-    try {
-        const ai = getAI();
-        const response = await ai.models.generateContent({
-            model: 'gemini-3-flash-preview',
-            contents: prompt,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: {
-                    type: Type.OBJECT,
-                    properties: {
-                        mainHadithId: { type: Type.INTEGER },
-                        similarHadithIds: { 
-                            type: Type.ARRAY, 
-                            items: { type: Type.INTEGER } 
-                        },
-                    },
-                    required: ['mainHadithId', 'similarHadithIds']
-                },
-            },
+    // حساب قوة التطابق لكل حديث
+    const scoredHadiths = allHadiths.map(hadith => {
+        let score = 0;
+        const text = hadith.text.toLowerCase();
+        
+        // تطابق كامل مع النص
+        if (text.includes(normalizedQuery)) score += 100;
+        
+        // تطابق الكلمات الفردية
+        queryWords.forEach(word => {
+            if (text.includes(word)) score += 20;
         });
 
-        const resultIds = JSON.parse(response.text);
-        
-        // ربط المعرفات بالكائنات الكاملة من المصفوفة المحلية لتوفير التكاليف وضمان الدقة
-        const mainHadith = allHadiths.find(h => h.id === resultIds.mainHadithId) || allHadiths[0];
-        const similarHadiths = (resultIds.similarHadithIds as number[])
-            .map(id => allHadiths.find(h => h.id === id))
-            .filter((h): h is Hadith => !!h && h.id !== mainHadith.id);
+        return { hadith, score };
+    });
 
-        return { mainHadith, similarHadiths };
+    // تصفية وترتيب النتائج
+    const results = scoredHadiths
+        .filter(item => item.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .map(item => item.hadith);
 
-    } catch (error) {
-        console.error("Error calling Gemini API for search:", error);
-        throw new Error("حدث خطأ أثناء البحث. يرجى المحاولة مرة أخرى.");
+    if (results.length === 0) {
+        throw new Error("لم يتم العثور على أحاديث مطابقة لبحثك.");
     }
+
+    const mainHadith = results[0];
+    const similarHadiths = results.slice(1, 6); // عرض حتى 5 أحاديث مشابهة
+
+    return { mainHadith, similarHadiths };
 };
 
 export const categorizeHadiths = async (allHadiths: Hadith[]): Promise<CategorizedResult[]> => {
