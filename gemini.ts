@@ -3,7 +3,19 @@ import { GoogleGenAI, Type } from "@google/genai";
 import type { Hadith, CategorizedResult } from './types';
 import { HADITH_DATA } from './data';
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Lazy initialization to avoid crash if API_KEY is missing during module load
+let aiInstance: GoogleGenAI | null = null;
+
+const getAI = () => {
+    if (!aiInstance) {
+        const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+        if (!apiKey) {
+            console.warn("Gemini API Key is missing. Search functionality will not work.");
+        }
+        aiInstance = new GoogleGenAI({ apiKey: apiKey || 'MISSING_KEY' });
+    }
+    return aiInstance;
+};
 
 export const parseHadithData = (): Hadith[] => {
     console.log("Parsing Hadith data...");
@@ -87,6 +99,7 @@ ${JSON.stringify(allHadiths.map(h => ({ id: h.id, text: h.text })))}
 `;
 
     try {
+        const ai = getAI();
         const response = await ai.models.generateContent({
             model: 'gemini-3-flash-preview',
             contents: prompt,
