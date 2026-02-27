@@ -9,6 +9,21 @@ export interface Hadith {
   other: string;
 }
 
+export interface User {
+  username: string;
+  isAdmin: boolean;
+}
+
+export interface Question {
+  id: string;
+  text: string;
+  author: string;
+  timestamp: number;
+  answer?: string;
+  answeredBy?: string;
+  answerTimestamp?: number;
+}
+
 export interface SearchResult {
   mainHadith: Hadith;
   similarHadiths: Hadith[];
@@ -28,7 +43,10 @@ export enum SearchMode {
 }
 
 export enum View {
-  HOME = 'HOME',
+  LOGIN = 'LOGIN',
+  DASHBOARD = 'DASHBOARD',
+  HOME = 'HOME', // This will be the Hadith Search view
   SEARCH = 'SEARCH',
   CLASSIFY = 'CLASSIFY',
+  QA = 'QA',
 }

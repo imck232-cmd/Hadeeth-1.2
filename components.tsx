@@ -1,9 +1,27 @@
 
-import React, { useState } from 'react';
-import type { Hadith, SearchResult, CategorizedHadiths } from './types';
+import React, { useState, useMemo } from 'react';
+import type { Hadith, SearchResult, CategorizedHadiths, User, Question } from './types';
 import { SearchMode } from './types';
 
 // ===== ICONS =====
+
+export const UserIcon: React.FC<{ className?: string }> = ({ className = "w-8 h-8" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+  </svg>
+);
+
+export const QuestionIcon: React.FC<{ className?: string }> = ({ className = "w-8 h-8" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+  </svg>
+);
+
+export const SendIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+  </svg>
+);
 
 export const SearchIcon: React.FC<{ className?: string }> = ({ className = "w-8 h-8" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
@@ -28,6 +46,210 @@ export const BackButtonIcon: React.FC<{ className?: string }> = ({ className = "
         <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
     </svg>
 );
+
+// ===== LOGIN VIEW =====
+
+interface LoginViewProps {
+    onLogin: (username: string, isAdmin: boolean) => void;
+}
+
+export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+
+    const handleLogin = (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+
+        // Validation: "الحق بغيتي" or "الحق بغيتي [رقم]"
+        const isAdmin = username === 'الحق بغيتي';
+        const isUser = /^الحق بغيتي \d+$/.test(username);
+
+        if ((isAdmin || isUser) && password === '123') {
+            onLogin(username, isAdmin);
+        } else {
+            setError('اسم المستخدم أو كلمة المرور غير صحيحة. الصيغة المطلوبة: الحق بغيتي [رقم]');
+        }
+    };
+
+    return (
+        <div className="max-w-md mx-auto mt-12 p-8 bg-slate-800 border border-slate-700 rounded-3xl shadow-2xl">
+            <div className="flex justify-center mb-6 text-teal-400">
+                <UserIcon className="w-16 h-16" />
+            </div>
+            <h2 className="text-2xl font-bold text-center text-white mb-8">تسجيل الدخول</h2>
+            <form onSubmit={handleLogin} className="space-y-6">
+                <div>
+                    <label className="block text-slate-400 mb-2 mr-2">اسم المستخدم</label>
+                    <input
+                        type="text"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder="الحق بغيتي 1"
+                        className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        required
+                    />
+                </div>
+                <div>
+                    <label className="block text-slate-400 mb-2 mr-2">كلمة المرور</label>
+                    <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="•••"
+                        className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        required
+                    />
+                </div>
+                {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+                <button
+                    type="submit"
+                    className="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl transition-colors shadow-lg shadow-teal-900/20"
+                >
+                    دخول
+                </button>
+            </form>
+        </div>
+    );
+};
+
+// ===== QA VIEW =====
+
+interface QAViewProps {
+    user: User;
+    questions: Question[];
+    onAddQuestion: (text: string) => void;
+    onAnswerQuestion: (id: string, answer: string) => void;
+}
+
+export const QAView: React.FC<QAViewProps> = ({ user, questions, onAddQuestion, onAnswerQuestion }) => {
+    const [newQuestion, setNewQuestion] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [answeringId, setAnsweringId] = useState<string | null>(null);
+    const [answerText, setAnswerText] = useState('');
+
+    const filteredQuestions = useMemo(() => {
+        if (!searchQuery.trim()) return questions;
+        const q = searchQuery.toLowerCase();
+        return questions.filter(qObj => 
+            qObj.text.toLowerCase().includes(q) || 
+            (qObj.answer && qObj.answer.toLowerCase().includes(q))
+        );
+    }, [questions, searchQuery]);
+
+    const handleAddQuestion = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (newQuestion.trim()) {
+            onAddQuestion(newQuestion.trim());
+            setNewQuestion('');
+        }
+    };
+
+    const handleAnswerSubmit = (id: string) => {
+        if (answerText.trim()) {
+            onAnswerQuestion(id, answerText.trim());
+            setAnsweringId(null);
+            setAnswerText('');
+        }
+    };
+
+    return (
+        <div className="max-w-4xl mx-auto space-y-8">
+            {/* Add Question Form */}
+            <div className="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-lg">
+                <h3 className="text-xl font-bold text-teal-400 mb-4">اطرح سؤالاً جديداً</h3>
+                <form onSubmit={handleAddQuestion} className="flex gap-3">
+                    <input
+                        type="text"
+                        value={newQuestion}
+                        onChange={(e) => setNewQuestion(e.target.value)}
+                        placeholder="اكتب سؤالك هنا..."
+                        className="flex-grow px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    />
+                    <button
+                        type="submit"
+                        className="px-6 py-3 bg-teal-600 hover:bg-teal-500 text-white rounded-xl transition-colors flex items-center gap-2"
+                    >
+                        <SendIcon />
+                        <span>إرسال</span>
+                    </button>
+                </form>
+            </div>
+
+            {/* Search Questions */}
+            <div className="relative">
+                <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="البحث في الأسئلة والأجوبة..."
+                    className="w-full px-5 py-3 pr-12 bg-slate-800 border border-slate-700 rounded-full text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+                <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-400" />
+            </div>
+
+            {/* Questions List */}
+            <div className="grid gap-4">
+                {filteredQuestions.length === 0 ? (
+                    <p className="text-center text-slate-500 py-8">لا توجد أسئلة تطابق بحثك.</p>
+                ) : (
+                    filteredQuestions.map(q => (
+                        <div key={q.id} className="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-md hover:border-teal-500/50 transition-colors">
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="flex-grow">
+                                    <p className="text-lg font-semibold text-white mb-1">{q.text}</p>
+                                    <p className="text-xs text-slate-500">بواسطة: {q.author} • {new Date(q.timestamp).toLocaleString('ar-EG')}</p>
+                                </div>
+                                {user.isAdmin && !q.answer && answeringId !== q.id && (
+                                    <button
+                                        onClick={() => setAnsweringId(q.id)}
+                                        className="text-teal-400 hover:text-teal-300 text-sm font-bold"
+                                    >
+                                        إجابة
+                                    </button>
+                                )}
+                            </div>
+
+                            {q.answer ? (
+                                <div className="mt-4 p-4 bg-slate-900/50 border-r-4 border-teal-500 rounded-l-lg">
+                                    <p className="text-teal-400 font-bold text-sm mb-1">الإجابة (بواسطة {q.answeredBy}):</p>
+                                    <p className="text-slate-200">{q.answer}</p>
+                                    <p className="text-[10px] text-slate-500 mt-2">{new Date(q.answerTimestamp!).toLocaleString('ar-EG')}</p>
+                                </div>
+                            ) : answeringId === q.id ? (
+                                <div className="mt-4 space-y-3">
+                                    <textarea
+                                        value={answerText}
+                                        onChange={(e) => setAnswerText(e.target.value)}
+                                        placeholder="اكتب الإجابة هنا..."
+                                        className="w-full p-3 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-teal-500 h-24"
+                                    />
+                                    <div className="flex justify-end gap-2">
+                                        <button
+                                            onClick={() => setAnsweringId(null)}
+                                            className="px-4 py-2 text-slate-400 hover:text-white text-sm"
+                                        >
+                                            إلغاء
+                                        </button>
+                                        <button
+                                            onClick={() => handleAnswerSubmit(q.id)}
+                                            className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-lg text-sm font-bold"
+                                        >
+                                            حفظ الإجابة
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <p className="text-sm text-slate-500 italic mt-2">بانتظار إجابة المدير العام...</p>
+                            )}
+                        </div>
+                    ))
+                )}
+            </div>
+        </div>
+    );
+};
 
 // ===== UI COMPONENTS =====
 

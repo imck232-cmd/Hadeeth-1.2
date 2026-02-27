@@ -7,18 +7,43 @@ import {
   SearchBar,
   SearchResults,
   CategoryView,
-  BackButtonIcon
+  BackButtonIcon,
+  LoginView,
+  QAView,
+  QuestionIcon
 } from './components';
-import { View, Hadith, SearchResult, CategorizedHadiths, SearchMode } from './types';
+import { View, Hadith, SearchResult, CategorizedHadiths, SearchMode, User, Question } from './types';
 import { parseHadithData, searchHadiths, categorizeHadiths } from './gemini';
 
 const App: React.FC = () => {
-  const [view, setView] = useState<View>(View.HOME);
+  const [view, setView] = useState<View>(View.LOGIN);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [allHadiths, setAllHadiths] = useState<Hadith[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
   const [categorizedData, setCategorizedData] = useState<CategorizedHadiths | null>(null);
+
+  // Load data from localStorage
+  useEffect(() => {
+    const savedUser = localStorage.getItem('hadith_user');
+    const savedQuestions = localStorage.getItem('hadith_questions');
+    
+    if (savedUser) {
+      setCurrentUser(JSON.parse(savedUser));
+      setView(View.DASHBOARD);
+    }
+    
+    if (savedQuestions) {
+      setQuestions(JSON.parse(savedQuestions));
+    }
+  }, []);
+
+  // Save questions to localStorage
+  useEffect(() => {
+    localStorage.setItem('hadith_questions', JSON.stringify(questions));
+  }, [questions]);
 
   useEffect(() => {
     // تحميل وتحليل بيانات الأحاديث عند تحميل المكون
@@ -33,6 +58,42 @@ const App: React.FC = () => {
       setIsLoading(false);
     }
   }, []);
+
+  const handleLogin = (username: string, isAdmin: boolean) => {
+    const user = { username, isAdmin };
+    setCurrentUser(user);
+    localStorage.setItem('hadith_user', JSON.stringify(user));
+    setView(View.DASHBOARD);
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('hadith_user');
+    setView(View.LOGIN);
+  };
+
+  const handleAddQuestion = (text: string) => {
+    if (!currentUser) return;
+    const newQ: Question = {
+      id: Date.now().toString(),
+      text,
+      author: currentUser.username,
+      timestamp: Date.now(),
+    };
+    setQuestions(prev => [newQ, ...prev]);
+  };
+
+  const handleAnswerQuestion = (id: string, answer: string) => {
+    if (!currentUser?.isAdmin) return;
+    setQuestions(prev => prev.map(q => 
+      q.id === id ? { 
+        ...q, 
+        answer, 
+        answeredBy: currentUser.username, 
+        answerTimestamp: Date.now() 
+      } : q
+    ));
+  };
 
   const handleSearchClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -87,12 +148,39 @@ const App: React.FC = () => {
   }, [allHadiths]);
 
   const handleBack = () => {
-    setView(View.HOME);
+    setView(View.DASHBOARD);
     setError(null);
   };
 
   const renderContent = () => {
+    if (!currentUser && view !== View.LOGIN) {
+        return <LoginView onLogin={handleLogin} />;
+    }
+
     switch (view) {
+      case View.LOGIN:
+        return <LoginView onLogin={handleLogin} />;
+      case View.DASHBOARD:
+        return (
+          <div className="flex flex-col md:flex-row flex-wrap items-center justify-center gap-8 py-12">
+            <IconButton
+              onClick={handleSearchClick}
+              icon={<SearchIcon />}
+              label="البحث عن الحديث"
+            />
+            <IconButton
+              onClick={handleClassifyClick}
+              icon={<CategoryIcon />}
+              label="تصنيف الأحاديث"
+            />
+            <IconButton
+              onClick={() => setView(View.QA)}
+              icon={<QuestionIcon />}
+              label="الأسئلة والأجوبة"
+            />
+          </div>
+        );
+      case View.HOME:
       case View.SEARCH:
         return (
           <>
@@ -109,22 +197,17 @@ const App: React.FC = () => {
             <CategoryView categorizedData={categorizedData} />
           </>
         );
-      case View.HOME:
-      default:
+      case View.QA:
         return (
-          <div className="flex flex-col md:flex-row items-center justify-center gap-8" data-group="main-actions">
-            <IconButton
-              onClick={handleSearchClick}
-              icon={<SearchIcon />}
-              label="البحث عن الحديث"
-            />
-            <IconButton
-              onClick={handleClassifyClick}
-              icon={<CategoryIcon />}
-              label="تصنيف الأحاديث"
-            />
-          </div>
+          <QAView 
+            user={currentUser!} 
+            questions={questions} 
+            onAddQuestion={handleAddQuestion} 
+            onAnswerQuestion={handleAnswerQuestion} 
+          />
         );
+      default:
+        return null;
     }
   };
 
@@ -132,7 +215,24 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-slate-900 text-white p-4 sm:p-8 flex flex-col">
       {isLoading && <Spinner />}
       
-      <header className="text-center mb-8">
+      <header className="text-center mb-8 relative">
+        {currentUser && (
+          <div className="absolute left-0 top-0 flex items-center gap-3">
+            <div className="text-right hidden sm:block">
+              <p className="text-xs text-slate-500">مرحباً بك</p>
+              <p className="text-sm font-bold text-teal-400">{currentUser.username}</p>
+            </div>
+            <button 
+              onClick={handleLogout}
+              className="p-2 bg-slate-800 hover:bg-slate-700 rounded-full text-slate-400 hover:text-red-400 transition-colors"
+              title="تسجيل الخروج"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+              </svg>
+            </button>
+          </div>
+        )}
         <h1 className="text-4xl sm:text-5xl font-bold text-teal-400 drop-shadow-[0_2px_4px_rgba(0,255,255,0.2)]">
           رفيقك في البحث عن الأحاديث النبوية
         </h1>
