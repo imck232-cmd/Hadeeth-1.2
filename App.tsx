@@ -215,28 +215,34 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-slate-900 text-white p-4 sm:p-8 flex flex-col">
       {isLoading && <Spinner />}
       
-      <header className="text-center mb-8 relative">
-        {currentUser && (
-          <div className="absolute left-0 top-0 flex items-center gap-3">
-            <div className="text-right hidden sm:block">
-              <p className="text-xs text-slate-500">مرحباً بك</p>
-              <p className="text-sm font-bold text-teal-400">{currentUser.username}</p>
-            </div>
-            <button 
-              onClick={handleLogout}
-              className="p-2 bg-slate-800 hover:bg-slate-700 rounded-full text-slate-400 hover:text-red-400 transition-colors"
-              title="تسجيل الخروج"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
-              </svg>
-            </button>
+      <header className="mb-10 border-b border-slate-800 pb-6">
+        <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
+          <div className="flex-grow text-center lg:text-right">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-teal-400 drop-shadow-[0_2px_4px_rgba(0,255,255,0.2)]">
+              رفيقك في البحث عن الأحاديث النبوية
+            </h1>
+            <p className="text-slate-400 mt-2 text-lg">أداة لاستكشاف أحاديث الجامع الصغير وحكمها</p>
           </div>
-        )}
-        <h1 className="text-4xl sm:text-5xl font-bold text-teal-400 drop-shadow-[0_2px_4px_rgba(0,255,255,0.2)]">
-          رفيقك في البحث عن الأحاديث النبوية
-        </h1>
-        <p className="text-slate-400 mt-2 text-lg">أداة لاستكشاف أحاديث الجامع الصغير وحكمها</p>
+
+          {currentUser && (
+            <div className="flex items-center gap-4 bg-slate-800/80 p-3 px-5 rounded-2xl border border-slate-700 shadow-xl">
+              <div className="text-right">
+                <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-0.5">المستخدم الحالي</p>
+                <p className="text-sm font-bold text-teal-400">{currentUser.username}</p>
+              </div>
+              <div className="h-8 w-px bg-slate-700 mx-1"></div>
+              <button 
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-600 text-red-500 hover:text-white rounded-xl transition-all text-sm font-bold border border-red-500/20 shadow-lg shadow-red-900/10"
+              >
+                <span>الخروج</span>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+                </svg>
+              </button>
+            </div>
+          )}
+        </div>
       </header>
 
       <main className="flex-grow container mx-auto px-4">
