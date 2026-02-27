@@ -403,46 +403,35 @@ interface SearchResultsProps {
 }
 
 export const SearchResults: React.FC<SearchResultsProps> = ({ results, onFindSimilar }) => {
-    const [showSimilar, setShowSimilar] = useState(false);
-
     if (!results) {
         return <div className="text-center text-slate-400 mt-8">لا توجد نتائج لعرضها.</div>;
     }
 
-    const handleFindSimilar = () => {
-        if (onFindSimilar) {
-            onFindSimilar(results.mainHadith.text);
-        }
-        setShowSimilar(true);
-    };
-
     return (
         <div className="mt-6 space-y-6">
-            <div className="relative">
-                <HadithCard hadith={results.mainHadith} />
-                <div className="flex justify-center mt-2">
-                    <button
-                        onClick={handleFindSimilar}
-                        className="px-6 py-2 bg-teal-600/20 border border-teal-500/50 text-teal-400 hover:bg-teal-600 hover:text-white rounded-full text-sm font-bold transition-all shadow-lg shadow-teal-900/10 flex items-center gap-2"
-                    >
-                        <SearchIcon className="w-4 h-4" />
-                        <span>البحث عن أحاديث مشابهة</span>
-                    </button>
-                </div>
+            <div className="flex justify-between items-center border-b border-slate-700 pb-2 mb-4">
+                <h3 className="text-teal-400 font-bold">نتائج البحث</h3>
+                <span className="text-slate-500 text-sm">تم العثور على {results.totalCount} حديث</span>
             </div>
-
-            {showSimilar && results.similarHadiths.length > 0 && (
-                <div className="pt-8 border-t border-slate-700 space-y-6">
-                    <h3 className="text-center text-teal-500 font-bold text-lg mb-4">نتائج مشابهة في المعنى</h3>
-                    {results.similarHadiths.map(hadith => (
-                        <HadithCard key={hadith.id} hadith={hadith} />
-                    ))}
-                </div>
-            )}
             
-            {showSimilar && results.similarHadiths.length === 0 && (
-                <p className="text-center text-slate-500 italic">لم نجد أحاديث مشابهة لهذا النص.</p>
-            )}
+            <div className="space-y-6">
+                {results.results.map((hadith, index) => (
+                    <div key={hadith.id} className="relative">
+                        <HadithCard hadith={hadith} />
+                        {index === 0 && onFindSimilar && (
+                            <div className="flex justify-center mt-2">
+                                <button
+                                    onClick={() => onFindSimilar(hadith.text)}
+                                    className="px-6 py-2 bg-teal-600/20 border border-teal-500/50 text-teal-400 hover:bg-teal-600 hover:text-white rounded-full text-xs font-bold transition-all shadow-lg shadow-teal-900/10 flex items-center gap-2"
+                                >
+                                    <SearchIcon className="w-3 h-3" />
+                                    <span>البحث عن أحاديث مشابهة لهذا النص</span>
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                ))}
+            </div>
         </div>
     );
 };

@@ -122,13 +122,10 @@ export const searchHadiths = async (query: string, allHadiths: Hadith[], mode: S
         throw new Error("لم يتم العثور على أحاديث مطابقة لبحثك في هذا الوضع.");
     }
 
-    const mainHadith = results[0];
-    
-    // في حالة التطابق التام، "الأحاديث المشابهة" يجب أن تكون أيضاً مطابقة تماماً
-    // أما في الأوضاع الأخرى فنأخذ بقية النتائج
-    const similarHadiths = results.slice(1, 11);
-
-    return { mainHadith, similarHadiths };
+    return { 
+        results: results, 
+        totalCount: results.length 
+    };
 };
 
 export const categorizeHadiths = async (allHadiths: Hadith[]): Promise<CategorizedResult[]> => {

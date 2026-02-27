@@ -25,8 +25,8 @@ export interface Question {
 }
 
 export interface SearchResult {
-  mainHadith: Hadith;
-  similarHadiths: Hadith[];
+  results: Hadith[];
+  totalCount: number;
 }
 
 export interface CategorizedResult {
