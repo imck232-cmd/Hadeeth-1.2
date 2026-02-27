@@ -147,6 +147,17 @@ const App: React.FC = () => {
     }
   }, [allHadiths]);
 
+  const handleFindSimilar = useCallback(async (text: string) => {
+    console.log(`Finding similar hadiths for: "${text.substring(0, 50)}..."`);
+    // نستخدم دائماً وضع SIMILAR هنا للبحث عن تشابه المعنى
+    try {
+      const result = await searchHadiths(text, allHadiths, SearchMode.SIMILAR);
+      setSearchResult(result);
+    } catch (err) {
+      console.error("Similarity search failed:", err);
+    }
+  }, [allHadiths]);
+
   const handleBack = () => {
     setView(View.DASHBOARD);
     setError(null);
@@ -186,7 +197,7 @@ const App: React.FC = () => {
           <>
             <SearchBar onSearch={handleSearchSubmit} isSearching={isLoading} />
             {error && <p className="text-center text-red-400 my-4">{error}</p>}
-            {searchResult && <SearchResults results={searchResult} />}
+            {searchResult && <SearchResults results={searchResult} onFindSimilar={handleFindSimilar} />}
           </>
         );
       case View.CLASSIFY:

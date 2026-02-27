@@ -86,6 +86,7 @@ export const searchHadiths = async (query: string, allHadiths: Hadith[], mode: S
         // تطابق تام: النص يحتوي على الجملة كاملة كما هي
         results = allHadiths.filter(hadith => {
             const normalizedText = normalizeArabic(hadith.text);
+            // البحث عن الجملة كاملة
             return normalizedText.includes(normalizedQuery);
         });
     } else if (mode === SearchMode.ALL_WORDS) {
@@ -95,7 +96,7 @@ export const searchHadiths = async (query: string, allHadiths: Hadith[], mode: S
             return queryWords.every(word => normalizedText.includes(word));
         });
     } else {
-        // بحث مشابه (الوضع الافتراضي): حساب قوة التطابق
+        // بحث مشابه: حساب قوة التطابق
         const scoredHadiths = allHadiths.map(hadith => {
             let score = 0;
             const normalizedText = normalizeArabic(hadith.text);
@@ -122,7 +123,10 @@ export const searchHadiths = async (query: string, allHadiths: Hadith[], mode: S
     }
 
     const mainHadith = results[0];
-    const similarHadiths = results.slice(1, 11); // عرض حتى 10 أحاديث مشابهة
+    
+    // في حالة التطابق التام، "الأحاديث المشابهة" يجب أن تكون أيضاً مطابقة تماماً
+    // أما في الأوضاع الأخرى فنأخذ بقية النتائج
+    const similarHadiths = results.slice(1, 11);
 
     return { mainHadith, similarHadiths };
 };
