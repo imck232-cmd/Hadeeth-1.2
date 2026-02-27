@@ -23,6 +23,8 @@ export const parseHadithData = (): Hadith[] => {
     const cleanedData = HADITH_DATA.replace(/\[ص:\d+\]/g, '');
     
     const hadiths: Hadith[] = [];
+    const seenIds = new Set<number>();
+    
     // تقسيم البيانات بناءً على نمط الرقم في بداية السطر
     const entries = cleanedData.split(/^\s*(?=\d+\s*[-])/m);
 
@@ -38,7 +40,15 @@ export const parseHadithData = (): Hadith[] => {
         const headerMatch = header.match(/^(\d+)\s*-\s*"(.*?)"\s*([\s\S]*)$/);
         
         if (headerMatch) {
-            const [, id, text, info] = headerMatch;
+            const [, idStr, text, info] = headerMatch;
+            const id = parseInt(idStr, 10);
+
+            // تخطي إذا كان المعرف مكرراً
+            if (seenIds.has(id)) {
+                console.warn(`Duplicate Hadith ID found and skipped: ${id}`);
+                continue;
+            }
+            seenIds.add(id);
 
             const getSection = (key: string): string => {
                 const regex = new RegExp(`\\s*${key}:\\s*([\\s\\S]*?)(?=\\n\\s*|$)`, 's');
@@ -56,7 +66,7 @@ export const parseHadithData = (): Hadith[] => {
             }
 
             hadiths.push({
-                id: parseInt(id, 10),
+                id: id,
                 text: text.trim().replace(/\s+/g, ' '),
                 source: source,
                 narrator: narrator,

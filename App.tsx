@@ -138,6 +138,8 @@ const App: React.FC = () => {
     try {
       const result = await searchHadiths(query, allHadiths, mode);
       setSearchResult(result);
+      // Scroll to top of results
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "حدث خطأ غير متوقع.";
       console.error("Search failed:", errorMessage);
@@ -203,7 +205,6 @@ const App: React.FC = () => {
       case View.CLASSIFY:
         return (
           <>
-            <h2 className="text-3xl font-bold text-center text-teal-400 mb-6 pb-2 border-b-2 border-slate-700">الأحاديث حسب الأبواب</h2>
             {error && <p className="text-center text-red-400 my-4">{error}</p>}
             <CategoryView categorizedData={categorizedData} />
           </>
@@ -257,14 +258,14 @@ const App: React.FC = () => {
       </header>
 
       <main className="flex-grow container mx-auto px-4">
-        {view !== View.HOME && (
+        {view !== View.DASHBOARD && view !== View.LOGIN && (
           <button
             onClick={handleBack}
             className="flex items-center gap-2 mb-6 text-teal-400 hover:text-teal-300 transition-colors"
-            aria-label="العودة للصفحة الرئيسية"
+            aria-label="العودة للوحة التحكم"
           >
             <BackButtonIcon />
-            <span>العودة</span>
+            <span>العودة للوحة التحكم</span>
           </button>
         )}
         {renderContent()}
