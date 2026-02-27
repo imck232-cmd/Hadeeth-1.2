@@ -62,14 +62,15 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
         e.preventDefault();
         setError('');
 
-        // Validation: "الحق بغيتي" or "الحق بغيتي [رقم]"
-        const isAdmin = username === 'الحق بغيتي';
+        // Validation: "الحق بغيتي وإلى الله وجهتي" for Admin
+        // or "الحق بغيتي [رقم]" for regular users
+        const isAdmin = username === 'الحق بغيتي وإلى الله وجهتي';
         const isUser = /^الحق بغيتي \d+$/.test(username);
 
         if ((isAdmin || isUser) && password === '123') {
             onLogin(username, isAdmin);
         } else {
-            setError('اسم المستخدم أو كلمة المرور غير صحيحة. الصيغة المطلوبة: الحق بغيتي [رقم]');
+            setError('اسم المستخدم أو كلمة المرور غير صحيحة. المدير: الحق بغيتي وإلى الله وجهتي | المستخدم: الحق بغيتي [رقم]');
         }
     };
 
@@ -86,7 +87,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                         type="text"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        placeholder="الحق بغيتي 1"
+                        placeholder="الحق بغيتي وإلى الله وجهتي"
                         className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
                         required
                     />
