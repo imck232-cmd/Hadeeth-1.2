@@ -1,5 +1,20 @@
 import type { Hadith, CategorizedResult } from './types';
+import { SearchMode } from './types';
 import { HADITH_DATA } from './data';
+
+/**
+ * وظيفة لتطبيع النص العربي (إزالة التشكيل، توحيد الهمزات، إزالة علامات الترقيم)
+ */
+const normalizeArabic = (text: string): string => {
+    return text
+        .replace(/[\u064B-\u065F]/g, "") // إزالة التشكيل
+        .replace(/[أإآ]/g, "ا") // توحيد الألف
+        .replace(/ة/g, "ه") // توحيد التاء المربوطة
+        .replace(/ى/g, "ي") // توحيد الألف المقصورة
+        .replace(/[^\u0621-\u064A\s\d]/g, "") // إزالة علامات الترقيم والرموز غير العربية
+        .replace(/\s+/g, " ") // توحيد المسافات
+        .trim();
+};
 
 export const parseHadithData = (): Hadith[] => {
     console.log("Parsing Hadith data...");
@@ -57,43 +72,57 @@ export const parseHadithData = (): Hadith[] => {
     return hadiths;
 };
 
-export const searchHadiths = async (query: string, allHadiths: Hadith[]) => {
-    console.log(`Local search for: "${query}"`);
+export const searchHadiths = async (query: string, allHadiths: Hadith[], mode: SearchMode = SearchMode.SIMILAR) => {
+    console.log(`Local search [${mode}] for: "${query}"`);
     
-    const normalizedQuery = query.trim().toLowerCase();
+    const normalizedQuery = normalizeArabic(query);
     if (!normalizedQuery) return { mainHadith: allHadiths[0], similarHadiths: [] };
 
-    // تقسيم الاستعلام إلى كلمات للبحث عن تطابق متعدد
-    const queryWords = normalizedQuery.split(/\s+/).filter(word => word.length > 2);
+    const queryWords = normalizedQuery.split(/\s+/).filter(word => word.length > 1);
 
-    // حساب قوة التطابق لكل حديث
-    const scoredHadiths = allHadiths.map(hadith => {
-        let score = 0;
-        const text = hadith.text.toLowerCase();
-        
-        // تطابق كامل مع النص
-        if (text.includes(normalizedQuery)) score += 100;
-        
-        // تطابق الكلمات الفردية
-        queryWords.forEach(word => {
-            if (text.includes(word)) score += 20;
+    let results: Hadith[] = [];
+
+    if (mode === SearchMode.EXACT) {
+        // تطابق تام: النص يحتوي على الجملة كاملة كما هي
+        results = allHadiths.filter(hadith => {
+            const normalizedText = normalizeArabic(hadith.text);
+            return normalizedText.includes(normalizedQuery);
+        });
+    } else if (mode === SearchMode.ALL_WORDS) {
+        // تطابق جميع الكلمات: يجب أن يحتوي النص على كل كلمة في الاستعلام
+        results = allHadiths.filter(hadith => {
+            const normalizedText = normalizeArabic(hadith.text);
+            return queryWords.every(word => normalizedText.includes(word));
+        });
+    } else {
+        // بحث مشابه (الوضع الافتراضي): حساب قوة التطابق
+        const scoredHadiths = allHadiths.map(hadith => {
+            let score = 0;
+            const normalizedText = normalizeArabic(hadith.text);
+            
+            // تطابق كامل مع النص
+            if (normalizedText.includes(normalizedQuery)) score += 100;
+            
+            // تطابق الكلمات الفردية
+            queryWords.forEach(word => {
+                if (normalizedText.includes(word)) score += 20;
+            });
+
+            return { hadith, score };
         });
 
-        return { hadith, score };
-    });
-
-    // تصفية وترتيب النتائج
-    const results = scoredHadiths
-        .filter(item => item.score > 0)
-        .sort((a, b) => b.score - a.score)
-        .map(item => item.hadith);
+        results = scoredHadiths
+            .filter(item => item.score > 0)
+            .sort((a, b) => b.score - a.score)
+            .map(item => item.hadith);
+    }
 
     if (results.length === 0) {
-        throw new Error("لم يتم العثور على أحاديث مطابقة لبحثك.");
+        throw new Error("لم يتم العثور على أحاديث مطابقة لبحثك في هذا الوضع.");
     }
 
     const mainHadith = results[0];
-    const similarHadiths = results.slice(1, 6); // عرض حتى 5 أحاديث مشابهة
+    const similarHadiths = results.slice(1, 11); // عرض حتى 10 أحاديث مشابهة
 
     return { mainHadith, similarHadiths };
 };

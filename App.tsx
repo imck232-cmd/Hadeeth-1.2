@@ -9,7 +9,7 @@ import {
   CategoryView,
   BackButtonIcon
 } from './components';
-import { View, Hadith, SearchResult, CategorizedHadiths } from './types';
+import { View, Hadith, SearchResult, CategorizedHadiths, SearchMode } from './types';
 import { parseHadithData, searchHadiths, categorizeHadiths } from './gemini';
 
 const App: React.FC = () => {
@@ -70,12 +70,12 @@ const App: React.FC = () => {
     }
   }, [allHadiths, categorizedData]);
 
-  const handleSearchSubmit = useCallback(async (query: string) => {
-    console.log(`Submitting search for: "${query}"`);
+  const handleSearchSubmit = useCallback(async (query: string, mode: SearchMode) => {
+    console.log(`Submitting search [${mode}] for: "${query}"`);
     setIsLoading(true);
     setError(null);
     try {
-      const result = await searchHadiths(query, allHadiths);
+      const result = await searchHadiths(query, allHadiths, mode);
       setSearchResult(result);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "حدث خطأ غير متوقع.";

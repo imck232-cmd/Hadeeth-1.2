@@ -21,6 +21,12 @@ export interface CategorizedResult {
 
 export type CategorizedHadiths = Record<string, Hadith[]>;
 
+export enum SearchMode {
+  EXACT = 'EXACT',
+  ALL_WORDS = 'ALL_WORDS',
+  SIMILAR = 'SIMILAR',
+}
+
 export enum View {
   HOME = 'HOME',
   SEARCH = 'SEARCH',

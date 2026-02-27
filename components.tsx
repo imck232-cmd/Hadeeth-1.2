@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import type { Hadith, SearchResult, CategorizedHadiths } from './types';
+import { SearchMode } from './types';
 
 // ===== ICONS =====
 
@@ -54,40 +55,66 @@ export const IconButton: React.FC<IconButtonProps> = ({ onClick, icon, label }) 
 );
 
 interface SearchBarProps {
-    onSearch: (query: string) => void;
+    onSearch: (query: string, mode: SearchMode) => void;
     isSearching: boolean;
 }
 
 export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isSearching }) => {
     const [query, setQuery] = useState('');
+    const [mode, setMode] = useState<SearchMode>(SearchMode.SIMILAR);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (query.trim()) {
-            onSearch(query.trim());
+            onSearch(query.trim(), mode);
         }
     };
 
+    const modes = [
+        { id: SearchMode.EXACT, label: 'تطابق تام' },
+        { id: SearchMode.ALL_WORDS, label: 'جميع الكلمات' },
+        { id: SearchMode.SIMILAR, label: 'بحث مشابه' },
+    ];
+
     return (
-        <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto my-4">
-            <div className="relative">
-                <input
-                    type="text"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="اكتب كلمة أو جزءاً من الحديث للبحث..."
-                    className="w-full px-5 py-3 pr-12 text-lg text-white bg-slate-800 border-2 border-slate-700 rounded-full focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors"
-                    disabled={isSearching}
-                />
-                <button
-                    type="submit"
-                    className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-teal-600 text-white rounded-full hover:bg-teal-500 transition-colors disabled:bg-slate-600 disabled:cursor-not-allowed"
-                    disabled={isSearching}
-                >
-                    <SearchIcon className="w-6 h-6" />
-                </button>
+        <div className="w-full max-w-2xl mx-auto my-4">
+            <form onSubmit={handleSubmit} className="mb-4">
+                <div className="relative">
+                    <input
+                        type="text"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        placeholder="اكتب كلمة أو جزءاً من الحديث للبحث..."
+                        className="w-full px-5 py-3 pr-12 text-lg text-white bg-slate-800 border-2 border-slate-700 rounded-full focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors"
+                        disabled={isSearching}
+                    />
+                    <button
+                        type="submit"
+                        className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-teal-600 text-white rounded-full hover:bg-teal-500 transition-colors disabled:bg-slate-600 disabled:cursor-not-allowed"
+                        disabled={isSearching}
+                    >
+                        <SearchIcon className="w-6 h-6" />
+                    </button>
+                </div>
+            </form>
+            
+            <div className="flex flex-wrap justify-center gap-3">
+                {modes.map((m) => (
+                    <button
+                        key={m.id}
+                        onClick={() => setMode(m.id)}
+                        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 border ${
+                            mode === m.id
+                                ? 'bg-teal-600 border-teal-500 text-white shadow-lg shadow-teal-900/40'
+                                : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-200'
+                        }`}
+                        type="button"
+                    >
+                        {m.label}
+                    </button>
+                ))}
             </div>
-        </form>
+        </div>
     );
 };
 
