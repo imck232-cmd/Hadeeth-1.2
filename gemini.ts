@@ -3,11 +3,15 @@ import type { Hadith, CategorizedResult } from './types';
 import { SearchMode } from './types';
 import { HADITH_DATA } from './data';
 
-const apiKey = (typeof process !== 'undefined' && process.env && process.env.GEMINI_API_KEY) || '';
-const ai = new GoogleGenAI({ apiKey });
-
 export const searchViaGemini = async (query: string): Promise<string> => {
     console.log(`Gemini search for: "${query}"`);
+    
+    const apiKey = (typeof process !== 'undefined' && process.env && process.env.GEMINI_API_KEY) || '';
+    if (!apiKey) {
+        throw new Error("مفتاح API الخاص بـ Gemini غير متوفر. يرجى ضبطه في إعدادات البيئة.");
+    }
+    
+    const ai = new GoogleGenAI({ apiKey });
     
     const systemInstruction = `أنت خبير متخصص في علوم الحديث النبوي ومحقق حديثي رقمي دقيق. مهمتك هي تزويد المستخدم بنتائج دقيقة وموثقة 100% عند استلام أي استعلام عن حديث نبوي عبر زر 'البحث عبر النت'.
 
@@ -116,11 +120,17 @@ export const parseHadithData = (): Hadith[] => {
             if (seenIds.has(id)) continue;
             seenIds.add(id);
 
-            const getSection = (key: string): string => {
-                const regex = new RegExp(`\\s*${key}:\\s*([\\s\\S]*?)(?=\\n\\s*|$)`, 's');
-                const match = entry.match(regex);
-                return match ? match[1].trim() : '';
-            };
+            // استخراج الأقسام بكفاءة أكبر بدون تعبيرات نمطية متكررة
+            const sections: Record<string, string> = {};
+            for (let j = 1; j < parts.length; j++) {
+                const part = parts[j].trim();
+                const firstColonIndex = part.indexOf(':');
+                if (firstColonIndex !== -1) {
+                    const key = part.substring(0, firstColonIndex).trim();
+                    const value = part.substring(firstColonIndex + 1).trim();
+                    sections[key] = value;
+                }
+            }
 
             let source = '';
             let narrator = info.trim();
@@ -135,9 +145,9 @@ export const parseHadithData = (): Hadith[] => {
                 text: text.trim().replace(/\s+/g, ' '),
                 source: source,
                 narrator: narrator,
-                before: getSection('من قبله'),
-                response: getSection('من رده'),
-                other: getSection('عبارات أخرى'),
+                before: sections['من قبله'] || '',
+                response: sections['من رده'] || '',
+                other: sections['عبارات أخرى'] || '',
             });
         }
     }

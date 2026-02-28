@@ -56,16 +56,24 @@ const App: React.FC = () => {
 
   useEffect(() => {
     // تحميل وتحليل بيانات الأحاديث عند تحميل المكون
-    try {
-      console.log("Component mounted, parsing data...");
-      const parsedHadiths = parseHadithData();
-      setAllHadiths(parsedHadiths);
-    } catch (e) {
-      console.error("Failed to parse hadith data:", e);
-      setError("فشل تحميل بيانات الأحاديث.");
-    } finally {
-      setIsLoading(false);
-    }
+    // نستخدم setTimeout للسماح للواجهة بعرض الـ Spinner أولاً
+    const timer = setTimeout(() => {
+      try {
+        console.log("Component mounted, parsing data...");
+        const parsedHadiths = parseHadithData();
+        if (parsedHadiths.length === 0) {
+          throw new Error("لم يتم العثور على أي أحاديث في قاعدة البيانات.");
+        }
+        setAllHadiths(parsedHadiths);
+      } catch (e) {
+        console.error("Failed to parse hadith data:", e);
+        setError(e instanceof Error ? e.message : "فشل تحميل بيانات الأحاديث.");
+      } finally {
+        setIsLoading(false);
+      }
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   const handleLogin = (username: string, isAdmin: boolean) => {

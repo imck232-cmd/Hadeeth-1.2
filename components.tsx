@@ -103,7 +103,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
     };
 
     return (
-        <div className="max-w-md mx-auto mt-20 p-10 bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-[3rem] shadow-2xl animate-in fade-in zoom-in-95 duration-700">
+        <div className="max-w-md mx-auto mt-20 p-10 bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-[3rem] shadow-2xl">
             <div className="flex justify-center mb-8">
                 <div className="p-5 bg-teal-500/10 rounded-full shadow-inner">
                     <UserIcon className="w-16 h-16 text-teal-400" />
@@ -194,7 +194,7 @@ export const QAView: React.FC<QAViewProps> = ({ user, questions, onAddQuestion, 
     };
 
     return (
-        <div className="max-w-4xl mx-auto space-y-10 animate-in fade-in duration-700">
+        <div className="max-w-4xl mx-auto space-y-10">
             {/* Add Question Form */}
             <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 p-8 rounded-3xl shadow-2xl">
                 <div className="flex items-center gap-3 mb-6">
@@ -241,7 +241,7 @@ export const QAView: React.FC<QAViewProps> = ({ user, questions, onAddQuestion, 
                     </div>
                 ) : (
                     filteredQuestions.map(q => (
-                        <div key={q.id} className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 p-8 rounded-3xl shadow-xl hover:border-teal-500/30 transition-all group animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div key={q.id} className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 p-8 rounded-3xl shadow-xl hover:border-teal-500/30 transition-all group">
                             <div className="flex justify-between items-start gap-6 mb-6">
                                 <div className="flex-grow">
                                     <p className="text-xl font-bold text-white mb-3 leading-relaxed">{q.text}</p>
@@ -277,7 +277,7 @@ export const QAView: React.FC<QAViewProps> = ({ user, questions, onAddQuestion, 
                                         <ChevronDownIcon className="w-4 h-4" />
                                         <span>نص الإجابة</span>
                                     </button>
-                                    <div id={`answer-${q.id}`} className="hidden p-6 bg-slate-900/60 border-r-4 border-teal-500 rounded-2xl shadow-inner animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <div id={`answer-${q.id}`} className="hidden p-6 bg-slate-900/60 border-r-4 border-teal-500 rounded-2xl shadow-inner">
                                         <p className="text-teal-400 font-black text-xs uppercase tracking-widest mb-2">إجابة المدير العام ({q.answeredBy}):</p>
                                         <p className="text-slate-200 text-lg leading-relaxed">{q.answer}</p>
                                         <div className="flex items-center gap-1.5 text-[10px] text-slate-500 mt-4 pt-4 border-t border-slate-800">
@@ -289,7 +289,7 @@ export const QAView: React.FC<QAViewProps> = ({ user, questions, onAddQuestion, 
                                     </div>
                                 </div>
                             ) : answeringId === q.id ? (
-                                <div className="mt-6 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                <div className="mt-6 space-y-4">
                                     <textarea
                                         value={answerText}
                                         onChange={(e) => setAnswerText(e.target.value)}
@@ -383,7 +383,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isSearching }) =
     ];
 
     return (
-        <div className="w-full max-w-3xl mx-auto my-8 animate-in fade-in slide-in-from-top-4 duration-700">
+        <div className="w-full max-w-3xl mx-auto my-8">
             <form onSubmit={handleSubmit} className="mb-6">
                 <div className="relative group">
                     <input
@@ -430,7 +430,7 @@ export const GeminiResultCard: React.FC<{ result: string }> = ({ result }) => {
     const handleWhatsApp = () => shareToWhatsApp(result + "\n\n--- 🌿 رفيقك في البحث عن الأحاديث 🌿 ---");
 
     return (
-        <div className="bg-slate-800 border border-teal-500/30 rounded-2xl p-6 mb-6 shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="bg-slate-800 border border-teal-500/30 rounded-2xl p-6 mb-6 shadow-xl">
             <div className="flex justify-between items-center mb-6 border-b border-slate-700/50 pb-4">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-teal-500/20 rounded-lg">
@@ -582,7 +582,7 @@ export const HadithCard: React.FC<HadithCardProps> = ({ hadith }) => {
     };
 
     return (
-        <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 mb-6 shadow-lg transition-all duration-300 hover:shadow-teal-900/10 hover:border-teal-500/30 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 mb-6 shadow-lg transition-all duration-300 hover:shadow-teal-900/10 hover:border-teal-500/30">
             <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
                 <div className="flex-grow">
                     <p className="text-xl font-medium text-white leading-relaxed text-right" dir="rtl">
@@ -670,7 +670,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ results, onFindSim
 
     if (results.totalCount === 0) {
         return (
-            <div className="mt-12 text-center p-12 bg-slate-800/30 rounded-[3rem] border border-dashed border-slate-700/50 animate-in fade-in zoom-in duration-700">
+            <div className="mt-12 text-center p-12 bg-slate-800/30 rounded-[3rem] border border-dashed border-slate-700/50">
                 <div className="inline-flex p-6 bg-slate-900/50 rounded-full mb-6 border border-slate-700/30 shadow-inner">
                     <SearchIcon className="w-12 h-12 text-slate-600" />
                 </div>
