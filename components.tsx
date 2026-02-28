@@ -654,6 +654,20 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ results, onFindSim
         shareToWhatsApp(allText);
     };
 
+    if (results.totalCount === 0) {
+        return (
+            <div className="mt-12 text-center p-12 bg-slate-800/30 rounded-[3rem] border border-dashed border-slate-700/50 animate-in fade-in zoom-in duration-700">
+                <div className="inline-flex p-6 bg-slate-900/50 rounded-full mb-6 border border-slate-700/30 shadow-inner">
+                    <SearchIcon className="w-12 h-12 text-slate-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3">لم يتم العثور على نتائج</h3>
+                <p className="text-slate-400 max-w-md mx-auto leading-relaxed">
+                    عذراً، لم نجد أي أحاديث تطابق بحثك في قاعدة البيانات المحلية. جرب استخدام كلمات مفتاحية أخرى أو استخدم <span className="text-teal-400 font-bold">"البحث عبر النت"</span> للحصول على نتائج من المصادر العالمية.
+                </p>
+            </div>
+        );
+    }
+
     return (
         <div className="mt-6 space-y-8">
             <div className="flex flex-col sm:flex-row justify-between items-center bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50 gap-4">

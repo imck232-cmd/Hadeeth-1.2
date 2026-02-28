@@ -204,10 +204,6 @@ export const searchHadiths = async (query: string, allHadiths: Hadith[], mode: S
             .map(item => item.hadith);
     }
 
-    if (results.length === 0) {
-        throw new Error("لم يتم العثور على أحاديث مطابقة لبحثك في هذا الوضع.");
-    }
-
     return { 
         results: results, 
         totalCount: results.length 
