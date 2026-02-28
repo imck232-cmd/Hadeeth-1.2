@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
+import { 
   CategoryIcon,
   SearchIcon,
   IconButton,
@@ -11,7 +11,8 @@ import {
   BackButtonIcon,
   LoginView,
   QAView,
-  QuestionIcon
+  QuestionIcon,
+  LogOutIcon
 } from './components';
 import { View, Hadith, SearchResult, CategorizedHadiths, SearchMode, User, Question, GeminiResult } from './types';
 import { parseHadithData, searchHadiths, categorizeHadiths, searchViaGemini } from './gemini';
@@ -260,9 +261,7 @@ const App: React.FC = () => {
                 className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-600 text-red-500 hover:text-white rounded-xl transition-all text-sm font-bold border border-red-500/20 shadow-lg shadow-red-900/10"
               >
                 <span>الخروج</span>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
-                </svg>
+                <LogOutIcon className="w-4 h-4" />
               </button>
             </div>
           )}

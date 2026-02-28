@@ -3,37 +3,41 @@ import React, { useState, useMemo, useEffect } from 'react';
 import type { Hadith, SearchResult, CategorizedHadiths, User, Question, GeminiResult } from './types';
 import { SearchMode } from './types';
 import Markdown from 'react-markdown';
+import { 
+  User as UserIconLucide, 
+  HelpCircle, 
+  Send, 
+  Search, 
+  Copy, 
+  LayoutGrid, 
+  Globe, 
+  Info, 
+  ChevronDown, 
+  ArrowRight,
+  MessageCircle,
+  LogOut
+} from 'lucide-react';
 
 // ===== ICONS =====
 
 export const UserIcon: React.FC<{ className?: string }> = ({ className = "w-8 h-8" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-  </svg>
+  <UserIconLucide className={className} />
 );
 
 export const QuestionIcon: React.FC<{ className?: string }> = ({ className = "w-8 h-8" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
-  </svg>
+  <HelpCircle className={className} />
 );
 
 export const SendIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
-  </svg>
+  <Send className={className} />
 );
 
 export const SearchIcon: React.FC<{ className?: string }> = ({ className = "w-8 h-8" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-  </svg>
+  <Search className={className} />
 );
 
 export const CopyIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
-  </svg>
+  <Copy className={className} />
 );
 
 export const WhatsAppIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
@@ -43,33 +47,27 @@ export const WhatsAppIcon: React.FC<{ className?: string }> = ({ className = "w-
 );
 
 export const CategoryIcon: React.FC<{ className?: string }> = ({ className = "w-8 h-8" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
-  </svg>
+  <LayoutGrid className={className} />
 );
 
 export const GlobeIcon: React.FC<{ className?: string }> = ({ className = "w-8 h-8" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9s2.015-9 4.5-9m0 0a9.015 9.015 0 0 1 8.716 2.253M12 3a9.015 9.015 0 0 0-8.716 2.253m0 0A9.015 9.015 0 0 1 3 12c0 1.29.271 2.514.758 3.618m0 0A9.015 9.015 0 0 0 12 21a9.015 9.015 0 0 0 8.242-5.382m-16.484 0A9.015 9.015 0 0 1 3 12c0-1.29.271-2.514.758-3.618m0 0A9.015 9.015 0 0 1 12 3c1.29 0 2.514.271 3.618.758m0 0A9.015 9.015 0 0 1 21 12c0 1.29-.271 2.514-.758 3.618m0 0A9.015 9.015 0 0 0 12 3" />
-  </svg>
+  <Globe className={className} />
 );
 
 export const InfoIcon: React.FC<{ className?: string }> = ({ className = "w-8 h-8" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
-  </svg>
+  <Info className={className} />
 );
 
 export const ChevronDownIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={className}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-    </svg>
+  <ChevronDown className={className} />
 );
 
 export const BackButtonIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-    </svg>
+  <ArrowRight className={className} />
+);
+
+export const LogOutIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
+  <LogOut className={className} />
 );
 
 // ===== LOGIN VIEW =====
@@ -424,6 +422,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isSearching }) =
 
 export const GeminiResultCard: React.FC<{ result: string }> = ({ result }) => {
     const handleCopy = () => copyToClipboard(result);
+    const handleWhatsApp = () => shareToWhatsApp(result + "\n\n--- 🌿 رفيقك في البحث عن الأحاديث 🌿 ---");
 
     return (
         <div className="bg-slate-800 border border-teal-500/30 rounded-2xl p-6 mb-6 shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -434,13 +433,22 @@ export const GeminiResultCard: React.FC<{ result: string }> = ({ result }) => {
                     </div>
                     <h3 className="text-lg font-bold text-white">نتائج البحث عبر الذكاء الاصطناعي (جيمناي)</h3>
                 </div>
-                <button
-                    onClick={handleCopy}
-                    className="p-2 text-slate-400 hover:text-teal-400 hover:bg-teal-500/10 rounded-lg transition-all"
-                    title="نسخ النتائج"
-                >
-                    <CopyIcon className="w-5 h-5" />
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={handleCopy}
+                        className="p-2 text-slate-400 hover:text-teal-400 hover:bg-teal-500/10 rounded-lg transition-all"
+                        title="نسخ النتائج"
+                    >
+                        <CopyIcon className="w-5 h-5" />
+                    </button>
+                    <button
+                        onClick={handleWhatsApp}
+                        className="p-2 text-slate-400 hover:text-green-400 hover:bg-green-500/10 rounded-lg transition-all"
+                        title="إرسال عبر واتساب"
+                    >
+                        <WhatsAppIcon className="w-5 h-5" />
+                    </button>
+                </div>
             </div>
             
             <div className="markdown-body text-right" dir="rtl">
