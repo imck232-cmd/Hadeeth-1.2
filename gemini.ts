@@ -3,7 +3,8 @@ import type { Hadith, CategorizedResult } from './types';
 import { SearchMode } from './types';
 import { HADITH_DATA } from './data';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+const apiKey = (typeof process !== 'undefined' && process.env && process.env.GEMINI_API_KEY) || '';
+const ai = new GoogleGenAI({ apiKey });
 
 export const searchViaGemini = async (query: string): Promise<string> => {
     console.log(`Gemini search for: "${query}"`);
@@ -84,15 +85,25 @@ export const parseHadithData = (): Hadith[] => {
     const hadiths: Hadith[] = [];
     const seenIds = new Set<number>();
     
-    // تقسيم البيانات بناءً على نمط الرقم في بداية السطر
-    const entries = cleanedData.split(/^\s*(?=\d+\s*[-])/m);
-
-    for (const entry of entries) {
-        const trimmedEntry = entry.trim();
-        if (trimmedEntry === "") continue;
+    // استخدام تعبير نمطي أكثر كفاءة لتقسيم البيانات
+    // نبحث عن الأرقام التي تليها شرطة في بداية السطر
+    const entryPattern = /^\s*(\d+)\s*-\s*"/gm;
+    let match;
+    const entryIndices: number[] = [];
+    
+    while ((match = entryPattern.exec(cleanedData)) !== null) {
+        entryIndices.push(match.index);
+    }
+    
+    for (let i = 0; i < entryIndices.length; i++) {
+        const start = entryIndices[i];
+        const end = i + 1 < entryIndices.length ? entryIndices[i + 1] : cleanedData.length;
+        const entry = cleanedData.substring(start, end).trim();
+        
+        if (entry === "") continue;
 
         // تقسيم المدخل بناءً على أول علامة "" لفصل الرأس عن الأقسام
-        const parts = trimmedEntry.split('');
+        const parts = entry.split('');
         const header = parts[0].trim();
 
         // استخراج المعرف والنص وما يلحقهما من معلومات الراوي والمصدر
@@ -102,20 +113,15 @@ export const parseHadithData = (): Hadith[] => {
             const [, idStr, text, info] = headerMatch;
             const id = parseInt(idStr, 10);
 
-            // تخطي إذا كان المعرف مكرراً
-            if (seenIds.has(id)) {
-                console.warn(`Duplicate Hadith ID found and skipped: ${id}`);
-                continue;
-            }
+            if (seenIds.has(id)) continue;
             seenIds.add(id);
 
             const getSection = (key: string): string => {
                 const regex = new RegExp(`\\s*${key}:\\s*([\\s\\S]*?)(?=\\n\\s*|$)`, 's');
-                const match = trimmedEntry.match(regex);
+                const match = entry.match(regex);
                 return match ? match[1].trim() : '';
             };
 
-            // محاولة فصل المصدر (بين قوسين) عن الراوي
             let source = '';
             let narrator = info.trim();
             const sourceMatch = narrator.match(/^\((.*?)\)/);
@@ -133,10 +139,9 @@ export const parseHadithData = (): Hadith[] => {
                 response: getSection('من رده'),
                 other: getSection('عبارات أخرى'),
             });
-        } else {
-            console.warn("Could not parse entry header:", header.substring(0, 100));
         }
     }
+    
     console.log(`Successfully parsed ${hadiths.length} hadiths.`);
     return hadiths;
 };

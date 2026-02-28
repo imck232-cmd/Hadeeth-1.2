@@ -15,7 +15,8 @@ import {
   ChevronDown, 
   ArrowRight,
   MessageCircle,
-  LogOut
+  LogOut,
+  Book
 } from 'lucide-react';
 
 // ===== ICONS =====
@@ -68,6 +69,10 @@ export const BackButtonIcon: React.FC<{ className?: string }> = ({ className = "
 
 export const LogOutIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
   <LogOut className={className} />
+);
+
+export const BookIcon: React.FC<{ className?: string }> = ({ className = "w-8 h-8" }) => (
+  <Book className={className} />
 );
 
 // ===== LOGIN VIEW =====

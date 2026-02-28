@@ -31,16 +31,21 @@ const App: React.FC = () => {
 
   // Load data from localStorage
   useEffect(() => {
-    const savedUser = localStorage.getItem('hadith_user');
-    const savedQuestions = localStorage.getItem('hadith_questions');
-    
-    if (savedUser) {
-      setCurrentUser(JSON.parse(savedUser));
-      setView(View.DASHBOARD);
-    }
-    
-    if (savedQuestions) {
-      setQuestions(JSON.parse(savedQuestions));
+    try {
+      const savedUser = localStorage.getItem('hadith_user');
+      const savedQuestions = localStorage.getItem('hadith_questions');
+      
+      if (savedUser) {
+        setCurrentUser(JSON.parse(savedUser));
+        setView(View.DASHBOARD);
+      }
+      
+      if (savedQuestions) {
+        setQuestions(JSON.parse(savedQuestions));
+      }
+    } catch (e) {
+      console.error("Failed to load data from localStorage:", e);
+      localStorage.removeItem('hadith_user'); // Clear potentially corrupted data
     }
   }, []);
 
@@ -277,6 +282,11 @@ const App: React.FC = () => {
       </header>
 
       <main className="flex-grow container mx-auto px-4">
+        {error && view !== View.SEARCH && view !== View.HOME && (
+          <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl mb-6 text-center">
+            <p className="text-red-400 font-bold">{error}</p>
+          </div>
+        )}
         {view !== View.DASHBOARD && view !== View.LOGIN && (
           <button
             onClick={handleBack}
