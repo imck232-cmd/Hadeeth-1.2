@@ -350,7 +350,7 @@ interface SearchBarProps {
 
 export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isSearching }) => {
     const [query, setQuery] = useState('');
-    const [mode, setMode] = useState<SearchMode>(SearchMode.SIMILAR);
+    const [mode, setMode] = useState<SearchMode>(SearchMode.EXACT);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -410,6 +410,45 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isSearching }) =
 
 // ===== HELPERS =====
 
+const HADITH_SYMBOLS: Record<string, string> = {
+    'خ': 'البخاري',
+    'م': 'مسلم',
+    'ق': 'المتفق عليه (البخاري ومسلم)',
+    'د': 'أبو داود',
+    'ت': 'الترمذي',
+    'هـ': 'ابن ماجه',
+    'ن': 'النسائي',
+    'حم': 'مسند الإمام أحمد',
+    'ك': 'الحاكم في المستدرك',
+    'حب': 'ابن حبان',
+    'طب': 'الطبراني في المعجم الكبير',
+    'طس': 'الطبراني في المعجم الأوسط',
+    'طص': 'الطبراني في المعجم الصغير',
+    'حل': 'أبو نعيم في الحلية',
+    'فر': 'الديلمي في مسند الفردوس',
+    'هب': 'البيهقي في شعب الإيمان',
+    'خد': 'البخاري في الأدب المفرد',
+    'صح': 'لبيان أن الحديث صحيح',
+    'عم': 'عبد الله بن أحمد في زوائد المسند'
+};
+
+const getSymbolsFromHadith = (hadith: Hadith): { symbol: string; meaning: string }[] => {
+    const foundSymbols: { symbol: string; meaning: string }[] = [];
+    const allText = `${hadith.text} ${hadith.source} ${hadith.narrator} ${hadith.before} ${hadith.response} ${hadith.other}`;
+    
+    Object.entries(HADITH_SYMBOLS).forEach(([symbol, meaning]) => {
+        const escapedSymbol = symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        // Regex to find symbol as a standalone word or within parentheses/punctuation
+        const regex = new RegExp(`(^|\\s|[()\\-.,:;])(${escapedSymbol})(\\s|[()\\-.,:;]|$)`, 'g');
+        
+        if (regex.test(allText)) {
+            foundSymbols.push({ symbol, meaning });
+        }
+    });
+    
+    return foundSymbols;
+};
+
 const formatHadithForShare = (hadith: Hadith): string => {
     let text = `✨ *الحديث رقم ${hadith.id}* ✨\n\n`;
     text += `📜 "${hadith.text.trim()}"\n\n`;
@@ -427,6 +466,14 @@ const formatHadithForShare = (hadith: Hadith): string => {
     }
     if (isValidSection(hadith.other)) {
         text += `\n📝 *عبارات أخرى:* \n${hadith.other}\n`;
+    }
+
+    const symbols = getSymbolsFromHadith(hadith);
+    if (symbols.length > 0) {
+        text += `\n📖 *معاني الرموز:* \n`;
+        symbols.forEach(s => {
+            text += `▫️ ${s.symbol} = ${s.meaning}\n`;
+        });
     }
     
     text += `\n--- 🌿 رفيقك في البحث عن الأحاديث 🌿 ---`;
@@ -455,6 +502,8 @@ interface HadithCardProps {
 export const HadithCard: React.FC<HadithCardProps> = ({ hadith }) => {
     const handleCopy = () => copyToClipboard(formatHadithForShare(hadith));
     const handleWhatsApp = () => shareToWhatsApp(formatHadithForShare(hadith));
+
+    const symbols = useMemo(() => getSymbolsFromHadith(hadith), [hadith]);
 
     const renderField = (label: string, value?: string) => {
         if (!value || value.trim() === '' || value.trim() === 'لم نجد من قبله إلى الآن؛ ولعلنا نجد في المرحلة الثانية من التحقيق.') return null;
@@ -500,6 +549,20 @@ export const HadithCard: React.FC<HadithCardProps> = ({ hadith }) => {
                 {renderField("من رد الحديث", hadith.response)}
                 {renderField("عبارات أخرى ذات صلة", hadith.other)}
             </div>
+
+            {symbols.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-slate-700/30">
+                    <div className="flex flex-wrap gap-x-4 gap-y-2 bg-slate-900/40 p-3 rounded-xl border border-slate-700/20">
+                        {symbols.map((s, idx) => (
+                            <div key={idx} className="text-[11px] text-slate-400 flex items-center gap-1">
+                                <span className="text-teal-400 font-bold bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">{s.symbol}</span>
+                                <span>=</span>
+                                <span className="font-medium">{s.meaning}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             <div className="mt-6 flex justify-end gap-3 border-t border-slate-700/30 pt-4">
                 <button

@@ -111,19 +111,36 @@ export const searchHadiths = async (query: string, allHadiths: Hadith[], mode: S
             let score = 0;
             const normalizedText = normalizeArabic(hadith.text);
             
-            // تطابق كامل مع النص
-            if (normalizedText.includes(normalizedQuery)) score += 100;
+            // تطابق كامل مع النص (أولوية قصوى)
+            if (normalizedText.includes(normalizedQuery)) {
+                score += 100;
+            }
             
             // تطابق الكلمات الفردية
+            let matchedWordsCount = 0;
             queryWords.forEach(word => {
-                if (normalizedText.includes(word)) score += 20;
+                if (normalizedText.includes(word)) {
+                    score += 20;
+                    matchedWordsCount++;
+                }
             });
 
-            return { hadith, score };
+            return { hadith, score, matchedWordsCount };
         });
 
         results = scoredHadiths
-            .filter(item => item.score > 0)
+            .filter(item => {
+                // إذا وجدنا الجملة كاملة، نقبلها فوراً
+                if (item.score >= 100) return true;
+                
+                // إذا كان البحث من كلمة واحدة، يجب أن تطابق الكلمة
+                if (queryWords.length <= 1) return item.matchedWordsCount > 0;
+                
+                // للبحث المتعدد الكلمات: يجب أن يطابق على الأقل كلمتين أو نصف الكلمات (أيهما أكبر)
+                // لضمان عدم ظهور نتائج غير ذات صلة
+                const minRequired = Math.max(2, Math.ceil(queryWords.length / 2));
+                return item.matchedWordsCount >= minRequired;
+            })
             .sort((a, b) => b.score - a.score)
             .map(item => item.hadith);
     }
