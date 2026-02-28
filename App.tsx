@@ -24,6 +24,7 @@ const App: React.FC = () => {
   const [allHadiths, setAllHadiths] = useState<Hadith[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastQuery, setLastQuery] = useState<string>('');
   const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
   const [geminiResult, setGeminiResult] = useState<string | null>(null);
   const [categorizedData, setCategorizedData] = useState<CategorizedHadiths | null>(null);
@@ -137,6 +138,7 @@ const App: React.FC = () => {
 
   const handleSearchSubmit = useCallback(async (query: string, mode: SearchMode) => {
     console.log(`Submitting search [${mode}] for: "${query}"`);
+    setLastQuery(query);
     setIsLoading(true);
     setError(null);
     setSearchResult(null);
@@ -212,7 +214,13 @@ const App: React.FC = () => {
             <SearchBar onSearch={handleSearchSubmit} isSearching={isLoading} />
             {error && <p className="text-center text-red-400 my-4">{error}</p>}
             {geminiResult && <GeminiResultCard result={geminiResult} />}
-            {searchResult && <SearchResults results={searchResult} onFindSimilar={handleFindSimilar} />}
+            {searchResult && (
+              <SearchResults 
+                results={searchResult} 
+                onFindSimilar={handleFindSimilar} 
+                onSearchWeb={() => handleSearchSubmit(lastQuery, SearchMode.GEMINI)}
+              />
+            )}
           </>
         );
       case View.CLASSIFY:

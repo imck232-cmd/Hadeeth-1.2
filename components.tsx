@@ -645,9 +645,10 @@ export const HadithCard: React.FC<HadithCardProps> = ({ hadith }) => {
 interface SearchResultsProps {
     results: SearchResult | null;
     onFindSimilar?: (text: string) => void;
+    onSearchWeb?: () => void;
 }
 
-export const SearchResults: React.FC<SearchResultsProps> = ({ results, onFindSimilar }) => {
+export const SearchResults: React.FC<SearchResultsProps> = ({ results, onFindSimilar, onSearchWeb }) => {
     if (!results) {
         return <div className="text-center text-slate-400 mt-8">لا توجد نتائج لعرضها.</div>;
     }
@@ -669,9 +670,18 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ results, onFindSim
                     <SearchIcon className="w-12 h-12 text-slate-600" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-3">لم يتم العثور على نتائج</h3>
-                <p className="text-slate-400 max-w-md mx-auto leading-relaxed">
-                    عذراً، لم نجد أي أحاديث تطابق بحثك في قاعدة البيانات المحلية. جرب استخدام كلمات مفتاحية أخرى أو استخدم <span className="text-teal-400 font-bold">"البحث عبر النت"</span> للحصول على نتائج من المصادر العالمية.
+                <p className="text-slate-400 max-w-md mx-auto leading-relaxed mb-8">
+                    عذراً، لم نجد أي أحاديث تطابق بحثك في قاعدة البيانات المحلية. يمكنك تجربة كلمات بحث أخرى أو استخدام البحث عبر الويب للحصول على نتائج من المصادر العالمية.
                 </p>
+                {onSearchWeb && (
+                    <button 
+                        onClick={onSearchWeb}
+                        className="flex items-center gap-3 px-8 py-4 bg-teal-600 hover:bg-teal-500 text-white rounded-2xl font-bold transition-all shadow-lg shadow-teal-900/20 group mx-auto"
+                    >
+                        <GlobeIcon className="w-6 h-6 group-hover:rotate-12 transition-transform" />
+                        <span>البحث عبر الويب (جيمناي)</span>
+                    </button>
+                )}
             </div>
         );
     }
