@@ -6,14 +6,15 @@ import {
   Spinner,
   SearchBar,
   SearchResults,
+  GeminiResultCard,
   CategoryView,
   BackButtonIcon,
   LoginView,
   QAView,
   QuestionIcon
 } from './components';
-import { View, Hadith, SearchResult, CategorizedHadiths, SearchMode, User, Question } from './types';
-import { parseHadithData, searchHadiths, categorizeHadiths } from './gemini';
+import { View, Hadith, SearchResult, CategorizedHadiths, SearchMode, User, Question, GeminiResult } from './types';
+import { parseHadithData, searchHadiths, categorizeHadiths, searchViaGemini } from './gemini';
 
 const App: React.FC = () => {
   const [view, setView] = useState<View>(View.LOGIN);
@@ -23,6 +24,7 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
+  const [geminiResult, setGeminiResult] = useState<string | null>(null);
   const [categorizedData, setCategorizedData] = useState<CategorizedHadiths | null>(null);
 
   // Load data from localStorage
@@ -100,6 +102,7 @@ const App: React.FC = () => {
     setView(View.SEARCH);
     setError(null);
     setSearchResult(null);
+    setGeminiResult(null);
   };
 
   const handleClassifyClick = useCallback(async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -135,9 +138,17 @@ const App: React.FC = () => {
     console.log(`Submitting search [${mode}] for: "${query}"`);
     setIsLoading(true);
     setError(null);
+    setSearchResult(null);
+    setGeminiResult(null);
+    
     try {
-      const result = await searchHadiths(query, allHadiths, mode);
-      setSearchResult(result);
+      if (mode === SearchMode.GEMINI) {
+        const result = await searchViaGemini(query);
+        setGeminiResult(result);
+      } else {
+        const result = await searchHadiths(query, allHadiths, mode);
+        setSearchResult(result);
+      }
       // Scroll to top of results
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
@@ -199,6 +210,7 @@ const App: React.FC = () => {
           <>
             <SearchBar onSearch={handleSearchSubmit} isSearching={isLoading} />
             {error && <p className="text-center text-red-400 my-4">{error}</p>}
+            {geminiResult && <GeminiResultCard result={geminiResult} />}
             {searchResult && <SearchResults results={searchResult} onFindSimilar={handleFindSimilar} />}
           </>
         );

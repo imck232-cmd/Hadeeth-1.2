@@ -1,7 +1,8 @@
 
-import React, { useState, useMemo } from 'react';
-import type { Hadith, SearchResult, CategorizedHadiths, User, Question } from './types';
+import React, { useState, useMemo, useEffect } from 'react';
+import type { Hadith, SearchResult, CategorizedHadiths, User, Question, GeminiResult } from './types';
 import { SearchMode } from './types';
+import Markdown from 'react-markdown';
 
 // ===== ICONS =====
 
@@ -44,6 +45,18 @@ export const WhatsAppIcon: React.FC<{ className?: string }> = ({ className = "w-
 export const CategoryIcon: React.FC<{ className?: string }> = ({ className = "w-8 h-8" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
+  </svg>
+);
+
+export const GlobeIcon: React.FC<{ className?: string }> = ({ className = "w-8 h-8" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9s2.015-9 4.5-9m0 0a9.015 9.015 0 0 1 8.716 2.253M12 3a9.015 9.015 0 0 0-8.716 2.253m0 0A9.015 9.015 0 0 1 3 12c0 1.29.271 2.514.758 3.618m0 0A9.015 9.015 0 0 0 12 21a9.015 9.015 0 0 0 8.242-5.382m-16.484 0A9.015 9.015 0 0 1 3 12c0-1.29.271-2.514.758-3.618m0 0A9.015 9.015 0 0 1 12 3c1.29 0 2.514.271 3.618.758m0 0A9.015 9.015 0 0 1 21 12c0 1.29-.271 2.514-.758 3.618m0 0A9.015 9.015 0 0 0 12 3" />
+  </svg>
+);
+
+export const InfoIcon: React.FC<{ className?: string }> = ({ className = "w-8 h-8" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
   </svg>
 );
 
@@ -337,7 +350,7 @@ export const IconButton: React.FC<IconButtonProps> = ({ onClick, icon, label }) 
         className="group flex flex-col items-center justify-center w-56 h-56 bg-slate-800/40 backdrop-blur-md border border-slate-700/50 rounded-[2.5rem] shadow-2xl text-slate-300 hover:bg-teal-600/10 hover:text-white hover:border-teal-500/50 transition-all duration-500 transform hover:-translate-y-2 focus:outline-none focus:ring-4 focus:ring-teal-500/20"
     >
         <div className="mb-4 p-5 bg-slate-900/50 rounded-3xl text-teal-400 group-hover:scale-110 group-hover:bg-teal-500/20 transition-all duration-500 shadow-inner">
-            {React.cloneElement(icon as React.ReactElement, { className: "w-10 h-10" })}
+            {React.cloneElement(icon as React.ReactElement<{ className?: string }>, { className: "w-10 h-10" })}
         </div>
         <span className="text-xl font-bold tracking-tight">{label}</span>
     </button>
@@ -363,6 +376,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isSearching }) =
         { id: SearchMode.EXACT, label: 'تطابق تام' },
         { id: SearchMode.ALL_WORDS, label: 'جميع الكلمات' },
         { id: SearchMode.SIMILAR, label: 'بحث مشابه' },
+        { id: SearchMode.GEMINI, label: 'البحث عبر النت', icon: <GlobeIcon className="w-5 h-5" /> },
     ];
 
     return (
@@ -382,7 +396,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isSearching }) =
                         className="absolute left-3 top-1/2 -translate-y-1/2 p-4 bg-teal-600 text-white rounded-2xl hover:bg-teal-500 transition-all disabled:bg-slate-700 disabled:cursor-not-allowed shadow-lg shadow-teal-900/40 transform hover:scale-105 active:scale-95"
                         disabled={isSearching}
                     >
-                        <SearchIcon className="w-6 h-6" />
+                        {mode === SearchMode.GEMINI ? <GlobeIcon className="w-6 h-6" /> : <SearchIcon className="w-6 h-6" />}
                     </button>
                 </div>
             </form>
@@ -392,16 +406,50 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isSearching }) =
                     <button
                         key={m.id}
                         onClick={() => setMode(m.id)}
-                        className={`px-6 py-2.5 rounded-2xl text-sm font-bold transition-all duration-300 border-2 ${
+                        className={`px-6 py-2.5 rounded-2xl text-sm font-bold transition-all duration-300 border-2 flex items-center gap-2 ${
                             mode === m.id
                                 ? 'bg-teal-600 border-teal-500 text-white shadow-xl shadow-teal-900/40 transform scale-105'
                                 : 'bg-slate-800/50 border-slate-700/50 text-slate-400 hover:border-slate-500 hover:text-slate-200'
                         }`}
                         type="button"
                     >
+                        {m.icon}
                         {m.label}
                     </button>
                 ))}
+            </div>
+        </div>
+    );
+};
+
+export const GeminiResultCard: React.FC<{ result: string }> = ({ result }) => {
+    const handleCopy = () => copyToClipboard(result);
+
+    return (
+        <div className="bg-slate-800 border border-teal-500/30 rounded-2xl p-6 mb-6 shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex justify-between items-center mb-6 border-b border-slate-700/50 pb-4">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-teal-500/20 rounded-lg">
+                        <GlobeIcon className="w-6 h-6 text-teal-400" />
+                    </div>
+                    <h3 className="text-lg font-bold text-white">نتائج البحث عبر الذكاء الاصطناعي (جيمناي)</h3>
+                </div>
+                <button
+                    onClick={handleCopy}
+                    className="p-2 text-slate-400 hover:text-teal-400 hover:bg-teal-500/10 rounded-lg transition-all"
+                    title="نسخ النتائج"
+                >
+                    <CopyIcon className="w-5 h-5" />
+                </button>
+            </div>
+            
+            <div className="markdown-body text-right" dir="rtl">
+                <Markdown>{result}</Markdown>
+            </div>
+            
+            <div className="mt-8 pt-4 border-t border-slate-700/50 text-xs text-slate-500 flex items-center gap-2 italic">
+                <InfoIcon className="w-4 h-4" />
+                تم توليد هذه النتائج بواسطة الذكاء الاصطناعي بناءً على المصادر المعتمدة.
             </div>
         </div>
     );

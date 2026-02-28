@@ -40,6 +40,11 @@ export enum SearchMode {
   EXACT = 'EXACT',
   ALL_WORDS = 'ALL_WORDS',
   SIMILAR = 'SIMILAR',
+  GEMINI = 'GEMINI',
+}
+
+export interface GeminiResult {
+    text: string;
 }
 
 export enum View {
