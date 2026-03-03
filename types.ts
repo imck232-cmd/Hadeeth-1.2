@@ -54,4 +54,5 @@ export enum View {
   SEARCH = 'SEARCH',
   CLASSIFY = 'CLASSIFY',
   QA = 'QA',
+  AI_INSTRUCTIONS = 'AI_INSTRUCTIONS',
 }

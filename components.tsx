@@ -16,7 +16,9 @@ import {
   ArrowRight,
   MessageCircle,
   LogOut,
-  Book
+  Book,
+  Sparkles,
+  ExternalLink
 } from 'lucide-react';
 
 // ===== ICONS =====
@@ -73,6 +75,14 @@ export const LogOutIcon: React.FC<{ className?: string }> = ({ className = "w-6 
 
 export const BookIcon: React.FC<{ className?: string }> = ({ className = "w-8 h-8" }) => (
   <Book className={className} />
+);
+
+export const SparklesIcon: React.FC<{ className?: string }> = ({ className = "w-8 h-8" }) => (
+  <Sparkles className={className} />
+);
+
+export const ExternalLinkIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
+  <ExternalLink className={className} />
 );
 
 // ===== LOGIN VIEW =====
@@ -361,10 +371,11 @@ export const IconButton: React.FC<IconButtonProps> = ({ onClick, icon, label }) 
 
 interface SearchBarProps {
     onSearch: (query: string, mode: SearchMode) => void;
+    onShowAIInstructions?: () => void;
     isSearching: boolean;
 }
 
-export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isSearching }) => {
+export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onShowAIInstructions, isSearching }) => {
     const [query, setQuery] = useState('');
     const [mode, setMode] = useState<SearchMode>(SearchMode.EXACT);
 
@@ -420,6 +431,17 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isSearching }) =
                         {m.label}
                     </button>
                 ))}
+                
+                {onShowAIInstructions && (
+                    <button
+                        onClick={onShowAIInstructions}
+                        className="px-6 py-2.5 rounded-2xl text-sm font-bold transition-all duration-300 border-2 bg-gradient-to-r from-purple-600/20 to-teal-600/20 border-purple-500/30 text-purple-300 hover:border-purple-500 hover:text-white flex items-center gap-2 shadow-lg shadow-purple-900/10"
+                        type="button"
+                    >
+                        <SparklesIcon className="w-5 h-5" />
+                        البحث بالذكاء الاصطناعي
+                    </button>
+                )}
             </div>
         </div>
     );
@@ -803,6 +825,127 @@ export const CategoryView: React.FC<CategoryViewProps> = ({ categorizedData }) =
                     ))}
                 </AccordionItem>
             ))}
+        </div>
+    );
+};
+
+// ===== AI SEARCH INSTRUCTIONS =====
+
+export const AI_PROMPT = `You are an expert in the science of Hadith and a meticulous digital Hadith researcher. Your task is to provide users with 100% accurate and documented results when they submit a query about a Hadith.
+
+STRICT RULES:
+1. ONLY use these authoritative sources:
+   - dorar.net (الدرر السنية)
+   - islamweb.net (إسلام ويب)
+   - The Comprehensive Library (المكتبة الشاملة)
+   - King Fahd Hadith Complex (جامع خادم الحرمين الشريفين للسنة النبوية)
+
+2. OUTPUT FORMAT (Must follow this exact model in Arabic):
+
+بناءً على المصادر المعتمدة (الدرر السنية، إسلام ويب، المكتبة الشاملة، وجامع خادم الحرمين للسنة النبوية)، إليك التخريج الدقيق والتحقيق العلمي للحديث:
+
+أ/ نص الحديث: [نص الحديث كاملاً مع ذكر المصدر].
+ب/ التخريج: [ذكر الكتب والأرقام التفصيلية].
+ج/ الراوي الأعلى: [اسم الصحابي الراوي].
+د/ الحكم على الحديث:
+   - من قَبِل الحديث: [ذكر العلماء وأحكامهم ومصادرهم].
+   - من رد الحديث: [ذكر من ضعف الحديث إن وجد، أو ذكر أنه لا يوجد].
+   - عبارات أخرى: [أي ملاحظات نقدية أخرى].
+هـ/ الأحاديث المشابهة: [ذكر حديثين مشابهين على الأقل بنفس التنسيق أعلاه].
+
+3. If the Hadith is not found in the specified sources, state clearly: 'لم يتم العثور على هذا الحديث في المصادر المعتمدة المحددة.'
+
+4. DO NOT include any information from unverified or social media sources.
+
+MODEL EXAMPLE TO FOLLOW:
+بناءً على المصادر المعتمدة (الدرر السنية، إسلام ويب، المكتبة الشاملة، وجامع خادم الحرمين للسنة النبوية)، إليك التخريج الدقيق والتحقيق العلمي لحديث "المرء على دين خليله":
+أ/ نص الحديث: "المَرءُ على دينِ خليلِه، فلينظرْ أحدُكم مَن يُخالِلُ". (المصدر: الدرر السنية - سنن أبي داود).
+ب/ التخريج: أخرجه أبو داود في سننه (رقم 4833)، والترمذي في سننه (رقم 2378)، والإمام أحمد في مسنده (رقم 8417)، والحاكم في المستدرك (رقم 7319)، والبيهقي في شعب الإيمان. (المصدر: المكتبة الشاملة/ إسلام ويب).
+ج/ الراوي الأعلى: أبو هريرة رضي الله عنه. (المصدر: الدرر السنية).
+د/ الحكم على الحديث:
+- من قَبِل الحديث: الألباني: (صحيح) - [المصدر: صحيح أبي داود]، النووي: (إسناده صحيح) - [المصدر: رياض الصالحين]...
+- من رد الحديث: لا يوجد من حكم بضعفه أو وضعه من الأئمة المحققين.
+- عبارات أخرى: لا توجد عبارات تفيد النكارة أو اللين عند كبار النقاد.
+هـ/ الأحاديث المشابهة: (مثل حديث الجليس الصالح، وحديث لا تصاحب إلا مؤمناً بنفس التفصيل).
+
+User Query: [The user will place the Hadith here]`;
+
+export const AISearchInstructionsView: React.FC = () => {
+    const [hadithInput, setHadithInput] = useState('');
+
+    const handleCopyPrompt = () => {
+        const finalPrompt = AI_PROMPT.replace(
+            '[The user will place the Hadith here]',
+            `${hadithInput}\n\nابحث عن هذا الحديث بناء على الشروط السابقة تماما دون خروج عنها`
+        );
+        copyToClipboard(finalPrompt);
+    };
+
+    const handleOpenGemini = () => {
+        window.open('https://gemini.google.com', '_blank');
+    };
+
+    return (
+        <div className="max-w-3xl mx-auto mt-10 p-8 bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 rounded-[3rem] shadow-2xl">
+            <div className="flex items-center gap-4 mb-8">
+                <div className="p-4 bg-purple-500/20 rounded-2xl">
+                    <SparklesIcon className="w-10 h-10 text-purple-400" />
+                </div>
+                <div>
+                    <h2 className="text-3xl font-black text-white">البحث بالذكاء الاصطناعي</h2>
+                    <p className="text-slate-400">اتبع الخطوات التالية للبحث عن الحديث بدقة عالية</p>
+                </div>
+            </div>
+
+            <div className="space-y-10">
+                <div className="relative p-6 bg-slate-900/50 border border-slate-700 rounded-3xl">
+                    <div className="absolute -top-4 -right-4 w-10 h-10 bg-teal-600 text-white rounded-full flex items-center justify-center font-black shadow-lg">1</div>
+                    <h3 className="text-xl font-bold text-white mb-4">انسخ الأمر (Prompt) المتخصص</h3>
+                    <p className="text-slate-400 text-sm mb-6 leading-relaxed">
+                        هذا الأمر يوجه الذكاء الاصطناعي للبحث في المصادر المعتمدة فقط (الدرر السنية، إسلام ويب، المكتبة الشاملة) وتقديم النتائج بتنسيق علمي دقيق.
+                    </p>
+
+                    <div className="mb-6">
+                        <label className="block text-teal-400 text-sm font-bold mb-2">اكتب الحديث هنا ثم اضغط على نسخ الامر:</label>
+                        <textarea
+                            value={hadithInput}
+                            onChange={(e) => setHadithInput(e.target.value)}
+                            placeholder="مثال: إنما الأعمال بالنيات..."
+                            className="w-full p-4 bg-slate-800 border border-slate-700 rounded-2xl text-white focus:outline-none focus:border-teal-500 transition-all resize-none h-24 text-right"
+                            dir="rtl"
+                        />
+                    </div>
+
+                    <button
+                        onClick={handleCopyPrompt}
+                        className="w-full py-4 bg-slate-800 hover:bg-slate-700 text-teal-400 font-bold rounded-2xl border border-teal-500/30 transition-all flex items-center justify-center gap-3 group"
+                    >
+                        <CopyIcon className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                        <span>اضغط هنا لنسخ الأمر</span>
+                    </button>
+                </div>
+
+                <div className="relative p-6 bg-slate-900/50 border border-slate-700 rounded-3xl">
+                    <div className="absolute -top-4 -right-4 w-10 h-10 bg-teal-600 text-white rounded-full flex items-center justify-center font-black shadow-lg">2</div>
+                    <h3 className="text-xl font-bold text-white mb-4">افتح برنامج الذكاء الاصطناعي</h3>
+                    <p className="text-slate-400 text-sm mb-6 leading-relaxed">
+                        بعد نسخ الأمر، اضغط على الزر أدناه لفتح Gemini، ثم الصق الأمر وضع الحديث المراد البحث عنه بين القوسين [ ] في نهاية النص.
+                    </p>
+                    <button
+                        onClick={handleOpenGemini}
+                        className="w-full py-4 bg-purple-600 hover:bg-purple-500 text-white font-black rounded-2xl transition-all shadow-xl shadow-purple-900/40 flex items-center justify-center gap-3 group"
+                    >
+                        <ExternalLinkIcon className="w-6 h-6 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                        <span>فتح Gemini للبحث</span>
+                    </button>
+                </div>
+            </div>
+
+            <div className="mt-10 p-4 bg-teal-500/5 border border-teal-500/20 rounded-2xl text-center">
+                <p className="text-teal-400 text-sm font-medium">
+                    ستظهر لك النتائج بشكل متقن وموثق من المصادر المعتمدة.
+                </p>
+            </div>
         </div>
     );
 };

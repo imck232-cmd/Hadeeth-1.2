@@ -12,7 +12,8 @@ import {
   LoginView,
   QAView,
   QuestionIcon,
-  LogOutIcon
+  LogOutIcon,
+  AISearchInstructionsView
 } from './components';
 import { View, Hadith, SearchResult, CategorizedHadiths, SearchMode, User, Question, GeminiResult } from './types';
 import { parseHadithData, searchHadiths, categorizeHadiths, searchViaGemini } from './gemini';
@@ -224,7 +225,11 @@ const App: React.FC = () => {
       case View.SEARCH:
         return (
           <>
-            <SearchBar onSearch={handleSearchSubmit} isSearching={isLoading} />
+            <SearchBar 
+              onSearch={handleSearchSubmit} 
+              onShowAIInstructions={() => setView(View.AI_INSTRUCTIONS)}
+              isSearching={isLoading} 
+            />
             {error && <p className="text-center text-red-400 my-4">{error}</p>}
             {geminiResult && <GeminiResultCard result={geminiResult} />}
             {searchResult && (
@@ -252,6 +257,8 @@ const App: React.FC = () => {
             onAnswerQuestion={handleAnswerQuestion} 
           />
         );
+      case View.AI_INSTRUCTIONS:
+        return <AISearchInstructionsView />;
       default:
         return null;
     }
